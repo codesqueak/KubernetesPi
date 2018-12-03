@@ -3,7 +3,7 @@
 This guide covers the construction, installation and use of a Kubernetes Cluster hosted on a set of Raspbeey Pi computers.
 
 <p align="center">
-  </img src="image/cluster.png">
+  </img src="images/cluster.png">
 </p>
 
 ## Hardware
