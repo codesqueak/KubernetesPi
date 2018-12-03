@@ -56,7 +56,8 @@ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/
 sudo apt update -qy
 sudo apt upgrade -qy
 ```
-* Edit boot configuration `sudo nano  /boot/cmdline.txt` and add the following options `ipv6.disable=1 cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1`
+* Edit boot configuration `sudo nano  /boot/cmdline.txt` and add the following options 
+```ipv6.disable=1 cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1```
 * Reboot
 
 This gives a basic configuration ready to install Docker and Kubernetes on
@@ -65,13 +66,16 @@ This gives a basic configuration ready to install Docker and Kubernetes on
 
 At the time of writing, Kubernetes does not install with the latest version of Docker. To complete the install I needed to install a specific Docker version:
 
-* Show all available: `apt-cache policy docker-ce`
-* Select a version and install: `sudo apt-get install docker-ce=18.06.1~ce~3-0~debian -qy`
-* Make Docker available to pi user: `sudo usermod pi -aG docker`
+* Show all available versions 
+```apt-cache policy docker-ce```
+* Select a version and install. This is the latest that would work with my Kubernetes - YMMV
+```sudo apt-get install docker-ce=18.06.1~ce~3-0~debian -qy```
+* Make Docker available to pi user
+```sudo usermod pi -aG docker```
 
 ### Install Kubernetes
 
-`sudo apt-get install -qy kubeadm`
+```sudo apt-get install -qy kubeadm```
 
 This is now a complete base image which can be used for control and worker nodes.  To save time, make an image copy to all of your SD cards.
 Don't forget to change IP addresses and node host names !
