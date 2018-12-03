@@ -28,8 +28,53 @@ A minimum configuration to demonstrate the features of Kubernetes that I used is
 **Note 2** The 5V to 12V cable is just to make things tidier.  You can use the original 12V PSU for the switch. Be careful to check power requirements if not using the original PSU.
 
 
-## Configure Raspberry Pi Nodes
+## Configure Raspberry Pi Nodes 
 
+### Install O/S
+
+* Install Raspbian Stretch Lite [Download](https://www.raspberrypi.org/downloads/raspbian/) onto sn SD card and boot
+* Run the config tool (`sudo raspi-config`) and set the `hostname` and enable `ssh`
+* Update networking to set a static IP, Gateway and DNS addresses (IPV4 only for now). `sudo nano /etc/dhcpcd.conf`
+* Disable the swap file
+```
+sudo dphys-swapfile swapoff
+sudo dphys-swapfile uninstall
+sudo systemctl disable dphys-swapfile
+```
+* Add Docker repository
+```
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+echo "deb [arch=armhf] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+```
+* Add Kubernetes repository
+```
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - 
+echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list 
+```
+* Update software
+```
+sudo apt update -qy
+sudo apt upgrade -qy
+```
+* Edit boot configuration `sudo nano  /boot/cmdline.txt` and add the following options `ipv6.disable=1 cgroup_enable=cpuset cgroup_enable=memory cgroup_memory=1`
+* Reboot
+
+This gives a basic configuration ready to install Docker and Kubernetes on
+
+### Install Docker
+
+At the time of writing, Kubernetes does not install with the latest version of Docker. To complete the install I needed to install a specific Docker version:
+
+* Show all available: `apt-cache policy docker-ce`
+* Select a version and install: `sudo apt-get install docker-ce=18.06.1~ce~3-0~debian -qy`
+* Make Docker available to pi user: `sudo usermod pi -aG docker`
+
+### Install Kubernetes
+
+`sudo apt-get install -qy kubeadm`
+
+This is now a complete base image which can be used for control and worker nodes.  To save time, make an image copy to all of your SD cards.
+Don't forget to change IP addresses and node host names !
 
 ## Install Kubernetes Control Node
 
