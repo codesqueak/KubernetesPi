@@ -28,7 +28,16 @@ A minimum configuration to demonstrate the features of Kubernetes that I used is
 **Note 2** The 5V to 12V cable is just to make things tidier.  You can use the original 12V PSU for the switch. Be careful to check power requirements if not using the original PSU.
 
 
-## Configure Raspberry Pi Nodes 
+## Configure Raspberry Pi Nodes
+
+Configuration is as follows:
+
+O/S version: `Raspbian Stretch Lite / Kernel 4:14`
+Kubernetes version: `v1.12.2`
+Docker version: `18.06.1-ce`
+Master node IP: 172.16.1.200
+Worker node IP: 172.16.1.201..204
+DNS: 1.1.1.1, 8.8.8.8
 
 ### Install O/S
 
@@ -80,6 +89,10 @@ At the time of writing, Kubernetes does not install with the latest version of D
 * Install
 ```sudo apt-get install -qy kubeadm```
 * Reboot
+
+<p align="center">
+  <img src="images/version.png">
+</p>
 
 This is now a complete base image which can be used for control and worker nodes.  To save time, make an image copy to all of your SD cards.
 Don't forget to change IP addresses and host names !
@@ -143,7 +156,7 @@ kubectl get nodes
 
 To add a worker node to the cluster, execute a `kubeadm join` command using the values generated earlier.
 
-* If the master node was at 172.16.1.200, the command would be in the form:
+* If the master node was at `172.16.1.200`, the command would be in the form:
 ```
 sudo kubeadm join 172.16.1.200:6443 --token <token here>  --discovery-token-ca-cert-hash sha256:<hash value here>
 ```
@@ -206,19 +219,11 @@ EOF
 
 kubectl apply -f hypriot-ingress.yaml
 ```
-* Verify Deployment of the Load Balancer
-```
-curl <IP address of load balancer>
+Verify correct operation by pointing a browser at the ingress node:
 
-<html>
-<head><title>Pi armed with Docker by Hypriot</title>
-  <body style="width: 100%; background-color: black;">
-    <div id="main" style="margin: 100px auto 0 auto; width: 800px;">
-      <img src="pi_armed_with_docker.jpg" alt="pi armed with docker" style="width: 800px">
-    </div>
-  </body>
-</html>
-```
+<p align="center">
+  <img src="images/hypriot.png">
+</p>
 
 **_...and this probably won't work. Recent changes in Kubernetes have introduced Role Based Access Control (RBAC)_**
 
