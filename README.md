@@ -7,7 +7,6 @@ One I build earlier ...
   <img src="images/cluster.png">
 </p>
 
-
 ## Hardware
 
 A minimum configuration to demonstrate the features of Kubernetes that I used is as follows:
@@ -23,21 +22,25 @@ A minimum configuration to demonstrate the features of Kubernetes that I used is
 | Frame | Somewhere for your Pi's to live | [Amazon Link](https://www.amazon.co.uk/gp/product/B01G38L7VS) | 2 | |
 | Storage | O/S Storage | [Amazon Link](https://www.amazon.co.uk/gp/product/B074B573C4) | 4 | Cheap and seem to work ok |
 
-**Note 1** Netgear also do a 5 port switch that runs from 5V. (8 port needs 12V). I wanted to run a bigger cluster so went for 8 ports.
+**Note 1** Netgear also produce a 5 port switch that runs from 5V. (8 port needs 12V). I wanted to run a bigger cluster so went for 8 ports.
 
 **Note 2** The 5V to 12V cable is just to make things tidier.  You can use the original 12V PSU for the switch. Be careful to check power requirements if not using the original PSU.
 
-
 ## Configure Raspberry Pi Nodes
 
-Configuration is as follows:
+Software versions:
 
-O/S version: `Raspbian Stretch Lite / Kernel 4:14`
-Kubernetes version: `v1.12.2`
-Docker version: `18.06.1-ce`
-Master node IP: 172.16.1.200
-Worker node IP: 172.16.1.201..204
-DNS: 1.1.1.1, 8.8.8.8
+* O/S version: `Raspbian Stretch Lite / Kernel 4:14`
+* Kubernetes version: `v1.12.2`
+* Docker version: `18.06.1-ce`
+
+Network:
+
+* Master node: `172.16.1.200 (Host name: kubectl)`
+* Worker node: `172.16.1.201..203 (Host names: worker1..3`
+* Ingress node IP: `172.16.1.201`
+* Gateway: `172.16.1.1`
+* DNS: `1.1.1.1, 8.8.8.8`
 
 ### Install O/S
 
@@ -162,6 +165,10 @@ sudo kubeadm join 172.16.1.200:6443 --token <token here>  --discovery-token-ca-c
 ```
 * Add the other two worker nodes
 * On the master node, execute `kubectl get nodes` to show the complete cluster
+
+<p align="center">
+  <img src="images/nodes.png">
+</p>
 
 The cluster is now complete
 
