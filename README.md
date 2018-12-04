@@ -1,6 +1,6 @@
 # Kubernetes Raspberry Pi Cluster
 
-This guide covers the construction, installation and use of a Kubernetes Cluster hosted on a set of Raspbeey Pi computers.
+This guide covers the construction, installation and use of a Kubernetes Cluster hosted on a set of Raspberry Pi computers.
 
 One I build earlier ...
 <p align="center">
@@ -62,6 +62,8 @@ sudo apt upgrade -qy
 
 This gives a basic configuration ready to install Docker and Kubernetes on
 
+**_You should be able to do all steps beyond this point via SSH on the static IP address you have set_**
+
 ### Install Docker
 
 At the time of writing, Kubernetes does not install with the latest version of Docker. To complete the install I needed to install a specific Docker version:
@@ -75,23 +77,158 @@ At the time of writing, Kubernetes does not install with the latest version of D
 
 ### Install Kubernetes
 
+* Install
 ```sudo apt-get install -qy kubeadm```
+* Reboot
 
 This is now a complete base image which can be used for control and worker nodes.  To save time, make an image copy to all of your SD cards.
-Don't forget to change IP addresses and node host names !
+Don't forget to change IP addresses and host names !
 
-## Install Kubernetes Control Node
+## Install Kubernetes Master Node
 
+Select the machine you are going to use as the master node
 
+* Load images ```
+kubeadm config images pull```
+
+### Hack Warning !
+
+This section is a hack due to a timing issue bringing up the control plane.  Hopefully this will be [fixed](https://github.com/kubernetes/kubeadm/issues/413) at a later date...
+
+This hack involves opening two ssh terminals, using one to modify the install as it runs.
+
+#### First SSH Terminal
+
+* Execute the following command
+```
+sudo watch -n 1.0 "sed -i 's/initialDelaySeconds: [0-9]\+/initialDelaySeconds: 360/' /etc/kubernetes/manifests/kube-apiserver.yaml"
+```
+This changes the `initialDelaySeconds` parameter to several minutes which gives time for everything to start.
+
+####  Second SSH Terminal
+
+* Execute the following command
+```
+sudo kubeadm init
+```
+
+* Once complete, note the line starting `kubeadm join --token`. You will need this later to join worker nodes to the cluster (Note 1)
+* Stop the first SSH terminal as it is no longer needed
+* Make the install generally available
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+*Note 1:* You can always regenerate the token with `kubeadm token create` at a later date
+
+## Configure Networking
+
+Most guides use [Flannel](https://github.com/coreos/flannel) as the networking layer. However, I found it impossible to get it working so used [Weave](https://github.com/weaveworks/weave) instead.
+
+* Install networking
+```
+sudo sysctl net.bridge.bridge-nf-call-iptables=1
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+```
+
+* Show system to confirm install
+```
+kubectl get pods --all-namespaces
+kubectl get nodes
+``` 
 
 ## Install Kubernetes Worker Node
 
+To add a worker node to the cluster, execute a `kubeadm join` command using the values generated earlier.
 
+* If the master node was at 172.16.1.200, the command would be in the form:
+```
+sudo kubeadm join 172.16.1.200:6443 --token <token here>  --discovery-token-ca-cert-hash sha256:<hash value here>
+```
+* Add the other two worker nodes
+* On the master node, execute `kubectl get nodes` to show the complete cluster
 
-## Run an Application
+The cluster is now complete
 
+## Publish a Basic Test Service
 
+As a demonstration, we will now deploy the [Hypriot Busybox](https://hub.docker.com/r/hypriot/rpi-busybox-httpd/) service (A Raspberry Pi compatible Docker Image with a minimal `Busybox httpd` web server )
 
+### Deploy the Service
+
+* Deploy service on 2 containers
+```
+kubectl run hypriot --image=hypriot/rpi-busybox-httpd --replicas=2 --port=80
+kubectl expose deployment hypriot --port 80
+kubectl get endpoints hypriot
+```
+* Verify Deployment on Worker Nodes
+```
+curl <IP address of an endpoint (Not a worker node IP address)>
+
+<html>
+<head><title>Pi armed with Docker by Hypriot</title>
+  <body style="width: 100%; background-color: black;">
+    <div id="main" style="margin: 100px auto 0 auto; width: 800px;">
+      <img src="pi_armed_with_docker.jpg" alt="pi armed with docker" style="width: 800px">
+    </div>
+  </body>
+</html>
+```
+
+### Deploy a Loader Balancer and Ingress Point
+
+Now we have the service running we need to configure a single ingress point with a load balancer.
+
+* Install load balancer
+```
+kubectl apply -f https://raw.githubusercontent.com/hypriot/rpi-traefik/master/traefik-k8s-example.yaml
+kubectl label node <worker node to host load balancer> nginx-controller=traefik
+```
+* Create an ingress point
+```
+cat > hypriot-ingress.yaml <<EOF
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hypriot
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        backend:
+          serviceName: hypriot
+          servicePort: 80
+EOF
+
+kubectl apply -f hypriot-ingress.yaml
+```
+* Verify Deployment of the Load Balancer
+```
+curl <IP address of load balancer>
+
+<html>
+<head><title>Pi armed with Docker by Hypriot</title>
+  <body style="width: 100%; background-color: black;">
+    <div id="main" style="margin: 100px auto 0 auto; width: 800px;">
+      <img src="pi_armed_with_docker.jpg" alt="pi armed with docker" style="width: 800px">
+    </div>
+  </body>
+</html>
+```
+
+**_...and this probably won't work. Recent changes in Kubernetes have introduced Role Based Access Control (RBAC)_**
+
+### How to Bypass RBAC
+
+For running test configuratioons, using RBAC can be painful. A (not recommended for production) way around this is:
+```
+kubectl create clusterrolebinding varMyClusterRoleBinding --clusterrole=cluster-admin --serviceaccount=kube-system:default
+```
+A reboot of the cluster will probably be needed after this.
 
 
 
