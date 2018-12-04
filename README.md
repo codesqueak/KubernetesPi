@@ -37,8 +37,8 @@ Software versions:
 Network:
 
 * Master node: `172.16.1.200 (Host name: kubectl)`
-* Worker node: `172.16.1.201..203 (Host names: worker1..3`
-* Ingress node IP: `172.16.1.201`
+* Worker node: `172.16.1.201..203 (Host names: worker1..3)`
+* Ingress node: `172.16.1.201`
 * Gateway: `172.16.1.1`
 * DNS: `1.1.1.1, 8.8.8.8`
 
@@ -236,7 +236,7 @@ Verify correct operation by pointing a browser at the ingress node:
 
 ### How to Bypass RBAC
 
-For running test configuratioons, using RBAC can be painful. A (not recommended for production) way around this is:
+For running test configuratioons, using [RBAC](http://docs.heptio.com/content/tutorials/rbac.html) can be painful. A (not recommended for production) way around this is:
 ```
 kubectl create clusterrolebinding varMyClusterRoleBinding --clusterrole=cluster-admin --serviceaccount=kube-system:default
 ```
