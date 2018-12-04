@@ -236,11 +236,13 @@ Verify correct operation by pointing a browser at the ingress node:
 
 ### How to Bypass RBAC
 
-For running test configuratioons, using [RBAC](http://docs.heptio.com/content/tutorials/rbac.html) can be painful. A (not recommended for production) way around this is:
+For running test configurations, using [RBAC](http://docs.heptio.com/content/tutorials/rbac.html) can be painful. A (not recommended for production) way around this is:
 ```
 kubectl create clusterrolebinding varMyClusterRoleBinding --clusterrole=cluster-admin --serviceaccount=kube-system:default
 ```
 A reboot of the cluster will probably be needed after this.
+
+*Note:* From a cold start, the cluster takes approximnately 5 minutes before the ingress responds with the Hypriot web page
 
 
 
