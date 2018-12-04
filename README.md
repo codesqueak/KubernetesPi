@@ -166,10 +166,6 @@ sudo kubeadm join 172.16.1.200:6443 --token <token here>  --discovery-token-ca-c
 * Add the other two worker nodes
 * On the master node, execute `kubectl get nodes` to show the complete cluster
 
-<p align="center">
-  <img src="images/nodes.png">
-</p>
-
 The cluster is now complete
 
 ## Publish a Basic Test Service
@@ -226,6 +222,12 @@ EOF
 
 kubectl apply -f hypriot-ingress.yaml
 ```
+Verify all nodes are connected and running
+
+<p align="center">
+  <img src="images/nodes.png">
+</p>
+
 Verify correct operation by pointing a browser at the ingress node:
 
 <p align="center">
