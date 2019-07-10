@@ -2,7 +2,7 @@
 
 This guide covers the construction, installation and use of a Kubernetes Cluster hosted on a set of Raspberry Pi computers.
 
-One I build earlier ...
+One I built earlier ...
 <p align="center">
   <img src="images/cluster.png">
 </p>
